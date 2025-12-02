@@ -1,0 +1,90 @@
+{
+  "name": "@ldesign/bookmark-core",
+  "version": "0.1.0",
+  "description": "LDesign 书签系统 - 框架无关的核心模块",
+  "keywords": [
+    "bookmark",
+    "favorites",
+    "navigation",
+    "ldesign",
+    "typescript"
+  ],
+  "author": "LDesign Team",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./es/index.d.ts",
+      "import": "./es/index.js",
+      "require": "./lib/index.cjs",
+      "default": "./es/index.js"
+    },
+    "./managers": {
+      "types": "./es/managers/index.d.ts",
+      "import": "./es/managers/index.js",
+      "require": "./lib/managers/index.cjs",
+      "default": "./es/managers/index.js"
+    },
+    "./managers/*": {
+      "types": "./es/managers/*.d.ts",
+      "import": "./es/managers/*.js",
+      "require": "./lib/managers/*.cjs",
+      "default": "./es/managers/*.js"
+    },
+    "./types": {
+      "types": "./es/types/index.d.ts",
+      "import": "./es/types/index.js",
+      "require": "./lib/types/index.cjs",
+      "default": "./es/types/index.js"
+    },
+    "./types/*": {
+      "types": "./es/types/*.d.ts",
+      "import": "./es/types/*.js",
+      "require": "./lib/types/*.cjs",
+      "default": "./es/types/*.js"
+    },
+    "./utils": {
+      "types": "./es/utils/index.d.ts",
+      "import": "./es/utils/index.js",
+      "require": "./lib/utils/index.cjs",
+      "default": "./es/utils/index.js"
+    },
+    "./utils/*": {
+      "types": "./es/utils/*.d.ts",
+      "import": "./es/utils/*.js",
+      "require": "./lib/utils/*.cjs",
+      "default": "./es/utils/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./lib/index.cjs",
+  "module": "./es/index.js",
+  "types": "./es/index.d.ts",
+  "unpkg": "./dist/index.js",
+  "jsdelivr": "./dist/index.js",
+  "files": [
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "es",
+    "lib",
+    "dist"
+  ],
+  "scripts": {
+    "build": "ldesign-builder build",
+    "dev": "ldesign-builder build --watch",
+    "clean": "rimraf dist es lib",
+    "lint": "eslint . --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^6.0.0",
+    "@ldesign/builder": "workspace:*",
+    "eslint": "^9.18.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.7.3"
+  },
+  "typings": "./es/index.d.ts",
+  "browser": "./dist/index.js"
+}

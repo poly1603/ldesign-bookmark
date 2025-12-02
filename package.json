@@ -1,0 +1,70 @@
+{
+  "name": "@ldesign/bookmark",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "LDesign 书签系统 - 现代化书签管理组件，支持分组、拖拽排序、持久化存储",
+  "author": "LDesign Team",
+  "license": "MIT",
+  "keywords": [
+    "ldesign",
+    "bookmark",
+    "favorites",
+    "navigation",
+    "vue",
+    "typescript"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./packages/core/es/index.d.ts",
+      "import": "./packages/core/es/index.js",
+      "require": "./packages/core/lib/index.cjs"
+    },
+    "./core": {
+      "types": "./packages/core/es/index.d.ts",
+      "import": "./packages/core/es/index.js",
+      "require": "./packages/core/lib/index.cjs"
+    },
+    "./vue": {
+      "types": "./packages/vue/esm/index.d.ts",
+      "import": "./packages/vue/esm/index.js",
+      "require": "./packages/vue/cjs/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./packages/core/lib/index.cjs",
+  "module": "./packages/core/es/index.js",
+  "types": "./packages/core/es/index.d.ts",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "packages/*/es",
+    "packages/*/lib",
+    "packages/*/esm",
+    "packages/*/cjs",
+    "packages/*/dist",
+    "package.json"
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:core": "pnpm --filter @ldesign/bookmark-core build",
+    "build:vue": "pnpm --filter @ldesign/bookmark-vue build",
+    "dev": "pnpm -r --parallel dev",
+    "clean": "rimraf packages/*/es packages/*/lib packages/*/esm packages/*/cjs packages/*/dist",
+    "lint": "eslint . --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^6.0.0",
+    "eslint": "^9.18.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.7.3"
+  }
+}
+

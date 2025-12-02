@@ -1,0 +1,21 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "jsx": "preserve",
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "baseUrl": ".",
+    "paths": {
+      "@ldesign/bookmark-core": ["../core/src/index.ts"]
+    },
+    "types": ["node", "vite/client"],
+    "declaration": true,
+    "declarationDir": "./esm",
+    "declarationMap": true,
+    "outDir": "./esm",
+    "sourceMap": true
+  },
+  "include": ["src/**/*", "src/**/*.vue", "../core/src/**/*"],
+  "exclude": ["node_modules", "dist", "es", "esm", "cjs", "lib", "__tests__", "examples"]
+}
+

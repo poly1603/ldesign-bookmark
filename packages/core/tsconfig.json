@@ -1,0 +1,17 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "rootDir": "./src",
+    "types": ["node"],
+    "declaration": true,
+    "declarationDir": "./es",
+    "declarationMap": true,
+    "outDir": "./es",
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "es", "lib", "__tests__", "examples"]
+}
+
