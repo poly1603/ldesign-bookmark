@@ -351,7 +351,7 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-end;
   background-color: #dee1e6;
-  padding: 10px 10px 0;
+  padding: 6px 0 0 0;
   gap: 0;
   user-select: none;
   box-sizing: border-box;
@@ -423,8 +423,8 @@ onUnmounted(() => {
   max-width: 200px;
   cursor: pointer;
   white-space: nowrap;
-  padding: 10px 30px;
-  margin: 0 -12px;
+  padding: 8px 30px;
+  margin: 0 -15px;
   color: #5f6368;
   transition: 0.2s;
   box-sizing: border-box;

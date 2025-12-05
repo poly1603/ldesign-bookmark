@@ -76,7 +76,7 @@ const store = useBookmarkStore({
   defaultExpandedIds: props.defaultExpandedIds,
 })
 
-// 监听 items 变化
+// 监听 items 变化（移除深度监听以提升性能）
 watch(
   () => props.items,
   (newItems) => {
@@ -84,7 +84,7 @@ watch(
       store.updateItems(newItems)
     }
   },
-  { deep: true },
+  { immediate: false },
 )
 
 // 监听选中事件

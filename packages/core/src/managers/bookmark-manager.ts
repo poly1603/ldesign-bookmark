@@ -14,6 +14,7 @@ import type {
 } from '../types'
 import { DEFAULT_BOOKMARK_CONFIG, DEFAULT_BOOKMARK_STATE } from '../types'
 import { EventEmitter, findItemById, generateId, getItemPath, getParentIds, isFolder } from '../utils'
+import { BookmarkIndex } from '../utils/bookmark-index'
 
 /**
  * 书签管理器配置
@@ -47,6 +48,9 @@ export class BookmarkManager {
   /** 事件发射器 */
   private emitter = new EventEmitter<BookmarkEventMap>()
 
+  /** 书签索引（用于快速查找） */
+  private index = new BookmarkIndex()
+
   /**
    * 创建书签管理器
    * @param config - 书签配置
@@ -62,6 +66,9 @@ export class BookmarkManager {
     }
 
     this.items = items || []
+
+    // 构建索引
+    this.index.build(this.items)
 
     // 初始化状态
     this.state = {
@@ -117,7 +124,8 @@ export class BookmarkManager {
    * @param event - 原始事件
    */
   select(id: string, event?: Event): void {
-    const item = findItemById(this.items, id)
+    // 使用索引快速查找（O(1) 而不是 O(n)）
+    const item = this.index.get(id)
 
     if (!item) {
       return
@@ -283,13 +291,16 @@ export class BookmarkManager {
    * @returns 是否删除成功
    */
   remove(id: string): boolean {
-    const item = findItemById(this.items, id)
+    const item = this.index.get(id)
     if (!item) {
       return false
     }
 
     const removed = this.removeItem(id)
     if (removed) {
+      // 从索引中删除
+      this.index.delete(id)
+
       // 如果删除的是选中项，清除选中状态
       if (this.state.selectedId === id) {
         this.state.selectedId = undefined
@@ -312,13 +323,16 @@ export class BookmarkManager {
    * @returns 是否更新成功
    */
   update(id: string, changes: Partial<BookmarkItem>): boolean {
-    const item = findItemById(this.items, id)
+    const item = this.index.get(id)
     if (!item) {
       return false
     }
 
     // 合并更新
     Object.assign(item, changes, { updatedAt: Date.now() })
+
+    // 更新索引
+    this.index.update(id, item)
 
     this.emitter.emit('update', { id, item, changes })
     this.emitChange()
@@ -338,8 +352,8 @@ export class BookmarkManager {
       return false
     }
 
-    const sourceItem = findItemById(this.items, sourceId)
-    const targetItem = findItemById(this.items, targetId)
+    const sourceItem = this.index.get(sourceId)
+    const targetItem = this.index.get(targetId)
 
     if (!sourceItem || !targetItem) {
       return false
@@ -370,6 +384,9 @@ export class BookmarkManager {
       targetList.splice(insertIndex, 0, sourceItem)
     }
 
+    // 重建索引
+    this.index.build(this.items)
+
     this.emitter.emit('reorder', { sourceId, targetId, position })
     this.emitChange()
 
@@ -388,7 +405,7 @@ export class BookmarkManager {
 
     this.state.activeId = id ?? undefined
 
-    const item = id ? findItemById(this.items, id) ?? null : null
+    const item = id ? this.index.get(id) ?? null : null
     this.emitter.emit('hover', { id, item })
   }
 
@@ -398,6 +415,8 @@ export class BookmarkManager {
    */
   updateItems(items: BookmarkItem[]): void {
     this.items = items
+    // 重建索引
+    this.index.build(this.items)
     this.emitChange()
   }
 
@@ -419,6 +438,7 @@ export class BookmarkManager {
    */
   destroy(): void {
     this.emitter.clear()
+    this.index.clear()
   }
 
   /**
@@ -450,6 +470,8 @@ export class BookmarkManager {
       const data = localStorage.getItem(this.config.storageKey)
       if (data) {
         this.items = JSON.parse(data)
+        // 重建索引
+        this.index.build(this.items)
       }
     }
     catch (error) {

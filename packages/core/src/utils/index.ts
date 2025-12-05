@@ -4,6 +4,7 @@
  */
 
 export { EventEmitter, type EventHandler } from './event-emitter'
+export { BookmarkIndex } from './bookmark-index'
 
 export {
   findItemById,

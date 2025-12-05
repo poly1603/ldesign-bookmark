@@ -1,50 +1,53 @@
 /**
  * LDesign 书签组件样式
+ * 使用全局 Color 和 Size CSS 变量
  */
 
-/* CSS 变量 */
+/* CSS 变量 - 完全依赖全局 CSS 变量 */
 :root {
   /* 书签栏 */
-  --l-bookmark-bar-bg: #ffffff;
-  --l-bookmark-bar-border: #e0e0e0;
-  --l-bookmark-bar-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --l-bookmark-bar-bg: var(--color-bg-container);
+  --l-bookmark-bar-border: var(--color-border);
+  --l-bookmark-bar-shadow: var(--color-shadow-small);
 
   /* 书签项 */
-  --l-bookmark-item-color: #333333;
-  --l-bookmark-item-hover-bg: #f5f5f5;
-  --l-bookmark-item-selected-bg: #e3f2fd;
-  --l-bookmark-item-selected-color: #1976d2;
+  --l-bookmark-item-color: var(--color-text-primary);
+  --l-bookmark-item-hover-bg: var(--color-bg-hover);
+  --l-bookmark-item-selected-bg: var(--color-primary-bg);
+  --l-bookmark-item-selected-color: var(--color-primary);
 
   /* 分隔线 */
-  --l-bookmark-separator-color: #e0e0e0;
+  --l-bookmark-separator-color: var(--color-border);
 
   /* 箭头 */
-  --l-bookmark-arrow-color: #999999;
+  --l-bookmark-arrow-color: var(--color-text-tertiary);
 
   /* 间距 */
-  --l-bookmark-item-padding: 6px 12px;
-  --l-bookmark-item-gap: 8px;
-  --l-bookmark-bar-padding: 4px;
+  --l-bookmark-item-padding: var(--size-space-xxs) var(--size-space-sm);
+  --l-bookmark-item-gap: var(--size-space-xs);
+  --l-bookmark-bar-padding: var(--size-space-xxs);
 }
 
-/* 暗色主题 */
+/* 暗色模式支持 - 统一使用 data-theme-mode 属性 */
+[data-theme-mode="dark"],
+.dark,
 .l-bookmark-bar--dark {
-  --l-bookmark-bar-bg: #1e1e1e;
-  --l-bookmark-bar-border: #333333;
-  --l-bookmark-item-color: #e0e0e0;
-  --l-bookmark-item-hover-bg: #2d2d2d;
-  --l-bookmark-item-selected-bg: #1565c0;
-  --l-bookmark-item-selected-color: #ffffff;
-  --l-bookmark-separator-color: #444444;
-  --l-bookmark-arrow-color: #888888;
+  --l-bookmark-bar-bg: var(--color-bg-container);
+  --l-bookmark-bar-border: var(--color-border);
+  --l-bookmark-item-color: var(--color-text-primary);
+  --l-bookmark-item-hover-bg: var(--color-bg-hover);
+  --l-bookmark-item-selected-bg: var(--color-primary-bg);
+  --l-bookmark-item-selected-color: var(--color-primary);
+  --l-bookmark-separator-color: var(--color-border);
+  --l-bookmark-arrow-color: var(--color-text-tertiary);
 }
 
 /* 书签栏 */
 .l-bookmark-bar {
   display: flex;
   background-color: var(--l-bookmark-bar-bg);
-  border: 1px solid var(--l-bookmark-bar-border);
-  border-radius: 8px;
+  border: var(--size-border-width-thin) solid var(--l-bookmark-bar-border);
+  border-radius: var(--size-radius-md);
   padding: var(--l-bookmark-bar-padding);
 }
 
@@ -59,7 +62,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 4px;
+  gap: var(--size-space-xxs);
 }
 
 .l-bookmark-bar--horizontal .l-bookmark-item {
@@ -69,13 +72,13 @@
 /* 垂直模式 */
 .l-bookmark-bar--vertical {
   flex-direction: column;
-  min-width: 200px;
+  min-width: var(--size-size-24);
 }
 
 .l-bookmark-bar--vertical .l-bookmark-bar__content {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--size-space-xxs);
 }
 
 /* 书签栏内容区 */
@@ -91,8 +94,8 @@
   gap: var(--l-bookmark-item-gap);
   padding: var(--l-bookmark-item-padding);
   cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s, color 0.2s;
+  border-radius: var(--size-radius-sm);
+  transition: background-color var(--size-duration-fast), color var(--size-duration-fast);
   user-select: none;
   color: var(--l-bookmark-item-color);
 }
@@ -110,12 +113,12 @@
 /* 书签图标 */
 .l-bookmark-item__icon {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--size-font-sm);
 }
 
 /* 书签标题 */
@@ -124,16 +127,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 14px;
-  line-height: 1.4;
+  font-size: var(--size-font-sm);
+  line-height: var(--size-line-normal);
 }
 
 /* 展开箭头 */
 .l-bookmark-item__arrow {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--size-font-xs);
   color: var(--l-bookmark-arrow-color);
-  transition: transform 0.2s;
+  transition: transform var(--size-duration-fast);
 }
 
 .l-bookmark-item--expanded .l-bookmark-item__arrow {
@@ -142,16 +145,16 @@
 
 /* 分隔线 */
 .l-bookmark-separator {
-  height: 1px;
-  margin: 4px 8px;
+  height: var(--size-border-width-thin);
+  margin: var(--size-space-xxs) var(--size-space-xs);
   background-color: var(--l-bookmark-separator-color);
 }
 
 /* 水平模式分隔线 */
 .l-bookmark-bar--horizontal .l-bookmark-separator {
-  width: 1px;
-  height: 20px;
-  margin: 0 4px;
+  width: var(--size-border-width-thin);
+  height: var(--size-size-5);
+  margin: 0 var(--size-space-xxs);
 }
 
 /* 文件夹子项容器 */
@@ -162,13 +165,13 @@
 /* 文件夹展开动画 */
 .l-bookmark-folder-enter-active,
 .l-bookmark-folder-leave-active {
-  transition: all 0.2s ease;
+  transition: all var(--size-duration-fast) ease;
 }
 
 .l-bookmark-folder-enter-from,
 .l-bookmark-folder-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(calc(-1 * var(--size-space-xs)));
 }
 
 /* 拖拽状态 */
@@ -183,7 +186,6 @@
 /* 置顶书签 */
 .l-bookmark-item--pinned::before {
   content: '📌';
-  font-size: 10px;
-  margin-right: 4px;
+  font-size: var(--size-font-xs);
+  margin-right: var(--size-space-xxs);
 }
-

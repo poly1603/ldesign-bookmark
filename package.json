@@ -1,17 +1,28 @@
 {
   "name": "@ldesign/bookmark",
   "type": "module",
-  "version": "0.1.0",
-  "description": "LDesign 书签系统 - 现代化书签管理组件，支持分组、拖拽排序、持久化存储",
+  "version": "1.0.0",
+  "description": "高性能书签管理组件库，支持 Vue 3，提供完整的书签增删改查、拖拽排序、虚拟滚动等功能",
   "author": "LDesign Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ldesign/bookmark.git"
+  },
+  "homepage": "https://github.com/ldesign/bookmark#readme",
+  "bugs": {
+    "url": "https://github.com/ldesign/bookmark/issues"
+  },
   "keywords": [
     "ldesign",
     "bookmark",
     "favorites",
     "navigation",
     "vue",
-    "typescript"
+    "vue3",
+    "typescript",
+    "virtual-scroll",
+    "drag-and-drop"
   ],
   "sideEffects": [
     "*.css"
@@ -28,10 +39,11 @@
       "require": "./packages/core/lib/index.cjs"
     },
     "./vue": {
-      "types": "./packages/vue/esm/index.d.ts",
-      "import": "./packages/vue/esm/index.js",
-      "require": "./packages/vue/cjs/index.cjs"
+      "types": "./packages/vue/es/index.d.ts",
+      "import": "./packages/vue/es/index.js",
+      "require": "./packages/vue/lib/index.cjs"
     },
+    "./vue/style.css": "./packages/vue/es/styles/index.css",
     "./package.json": "./package.json"
   },
   "main": "./packages/core/lib/index.cjs",
@@ -40,15 +52,14 @@
   "files": [
     "LICENSE",
     "README.md",
+    "CHANGELOG.md",
     "packages/*/es",
     "packages/*/lib",
-    "packages/*/esm",
-    "packages/*/cjs",
     "packages/*/dist",
     "package.json"
   ],
   "engines": {
-    "node": ">=16.0.0",
+    "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
   },
   "scripts": {
@@ -56,9 +67,10 @@
     "build:core": "pnpm --filter @ldesign/bookmark-core build",
     "build:vue": "pnpm --filter @ldesign/bookmark-vue build",
     "dev": "pnpm -r --parallel dev",
-    "clean": "rimraf packages/*/es packages/*/lib packages/*/esm packages/*/cjs packages/*/dist",
+    "clean": "rimraf packages/*/es packages/*/lib packages/*/dist",
     "lint": "eslint . --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.0.0",
