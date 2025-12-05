@@ -346,16 +346,42 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* ==================== CSS 变量定义 ==================== */
+.l-chrome-tabs {
+  /* 颜色 - 浅灰背景，选中白色 */
+  --tabs-bg: var(--color-gray-100, #f3f4f6);
+  --tabs-item-bg: transparent;
+  --tabs-item-bg-hover: var(--color-gray-200, #e5e7eb);
+  --tabs-item-bg-active: var(--color-bg-container, #ffffff);
+  --tabs-text-color: var(--color-gray-500, #6b7280);
+  --tabs-text-color-active: var(--color-gray-800, #1f2937);
+  --tabs-text-color-secondary: var(--color-gray-400, #9ca3af);
+  --tabs-border-color: var(--color-gray-200, #e5e7eb);
+  
+  /* 尺寸 - 使用 @ldesign/size 变量 */
+  --tabs-font-size: var(--size-font-sm, 13px);
+  --tabs-item-padding: var(--size-space-xs, 8px) var(--size-space-xl, 30px);
+  --tabs-icon-size: var(--size-icon-xs, 16px);
+  --tabs-btn-size: var(--size-8, 28px);
+  --tabs-radius: var(--size-radius-sm, 6px);
+  --tabs-radius-lg: var(--size-radius-md, 8px);
+  
+  /* 动画 */
+  --tabs-transition: all var(--size-duration-fast, 150ms) cubic-bezier(0.4, 0, 0.2, 1);
+  --tabs-shadow: var(--size-shadow-2, 0 1px 3px rgba(0, 0, 0, 0.08));
+  --tabs-shadow-lg: var(--size-shadow-4, 0 4px 12px rgba(0, 0, 0, 0.12));
+}
+
 /* ==================== 基础容器 ==================== */
 .l-chrome-tabs {
   display: flex;
   align-items: flex-end;
-  background-color: #dee1e6;
-  padding: 6px 0 0 0;
+  background-color: var(--tabs-bg);
+  padding: var(--size-space-xxs, 6px) 0 0 0;
   gap: 0;
   user-select: none;
   box-sizing: border-box;
-  font-size: 13px;
+  font-size: var(--tabs-font-size);
 }
 
 /* ==================== 滚动容器 ==================== */
@@ -378,29 +404,30 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: var(--tabs-btn-size);
+  height: var(--tabs-btn-size);
   padding: 0;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--color-gray-100, rgba(0, 0, 0, 0.05));
   border: none;
-  border-radius: 6px;
+  border-radius: var(--tabs-radius);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: var(--tabs-transition);
   flex-shrink: 0;
-  color: #5f6368;
-  margin-bottom: 4px;
+  color: var(--tabs-text-color);
+  margin-bottom: var(--size-space-xxs, 4px);
 }
 
 .l-chrome-tabs__scroll-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--color-gray-200, rgba(0, 0, 0, 0.1));
+  color: var(--tabs-text-color-active);
 }
 
 .l-chrome-tabs__scroll-btn--left {
-  margin-right: 4px;
+  margin-right: var(--size-space-xxs, 4px);
 }
 
 .l-chrome-tabs__scroll-btn--right {
-  margin-left: 4px;
+  margin-left: var(--size-space-xxs, 4px);
 }
 
 /* ==================== 标签列表 ==================== */
@@ -423,12 +450,13 @@ onUnmounted(() => {
   max-width: 200px;
   cursor: pointer;
   white-space: nowrap;
-  padding: 8px 30px;
+  padding: var(--tabs-item-padding);
   margin: 0 -15px;
-  color: #5f6368;
-  transition: 0.2s;
+  color: var(--tabs-text-color);
+  transition: var(--tabs-transition);
   box-sizing: border-box;
   flex-shrink: 0;
+  font-weight: 400;
   /* Chrome 风格圆角遮罩 */
   -webkit-mask-box-image: url("data:image/svg+xml,%3Csvg width='67' height='33' viewBox='0 0 67 33' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M27 0c-6.627 0-12 5.373-12 12v6c0 8.284-6.716 15-15 15h67c-8.284 0-15-6.716-15-15v-6c0-6.627-5.373-12-12-12H27z' fill='%23000'/%3E%3C/svg%3E") 12 27 15;
 }
@@ -443,29 +471,29 @@ onUnmounted(() => {
 
 /* Chrome 变体样式 */
 .l-chrome-tabs--chrome .l-chrome-tabs__item {
-  background: transparent;
+  background: var(--tabs-item-bg);
 }
 
 .l-chrome-tabs--chrome .l-chrome-tabs__item:hover {
-  background: #cfd2d6;
+  background: var(--tabs-item-bg-hover);
 }
 
 .l-chrome-tabs--chrome .l-chrome-tabs__item--active {
-  background: #fff;
+  background: var(--tabs-item-bg-active);
   z-index: 1;
-  color: #202124;
+  color: var(--tabs-text-color-active);
   font-weight: 500;
 }
 
 .l-chrome-tabs--chrome .l-chrome-tabs__item--active:hover {
-  background: #fff;
+  background: var(--tabs-item-bg-active);
 }
 
 /* ==================== 标签内容 ==================== */
 .l-chrome-tabs__item-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--size-space-xxs, 6px);
   max-width: 100%;
   overflow: hidden;
 }
@@ -475,8 +503,9 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: var(--tabs-icon-size);
+  height: var(--tabs-icon-size);
+  color: var(--color-primary-500, #3b82f6);
 }
 
 .l-chrome-tabs__title {
@@ -484,13 +513,13 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: var(--tabs-font-size);
 }
 
 .l-chrome-tabs__lock {
   display: flex;
   align-items: center;
-  color: #9aa0a6;
+  color: var(--tabs-text-color-secondary);
   flex-shrink: 0;
 }
 
@@ -505,9 +534,9 @@ onUnmounted(() => {
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  color: #5f6368;
+  color: var(--tabs-text-color);
   opacity: 0;
-  transition: all 0.15s;
+  transition: var(--tabs-transition);
   flex-shrink: 0;
 }
 
@@ -516,8 +545,8 @@ onUnmounted(() => {
 }
 
 .l-chrome-tabs__close:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #202124;
+  background: var(--color-danger-100, rgba(239, 68, 68, 0.15));
+  color: var(--color-danger-500, #ef4444);
 }
 
 /* ==================== 添加/更多按钮 ==================== */
@@ -526,47 +555,51 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: var(--tabs-btn-size);
+  height: var(--tabs-btn-size);
   padding: 0;
   background: transparent;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  color: #5f6368;
-  margin-bottom: 4px;
-  transition: all 0.2s;
+  color: var(--tabs-text-color);
+  margin-bottom: var(--size-space-xxs, 4px);
+  transition: var(--tabs-transition);
 }
 
 .l-chrome-tabs__add:hover,
 .l-chrome-tabs__more-btn:hover {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--color-gray-200, rgba(0, 0, 0, 0.08));
+  color: var(--tabs-text-color-active);
 }
 
 /* ==================== 右键菜单 ==================== */
 .l-chrome-tabs__context-menu {
   position: fixed;
-  min-width: 160px;
-  padding: 4px 0;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 9999;
+  min-width: 180px;
+  padding: var(--size-space-xxs, 4px);
+  background: var(--color-bg-container, #ffffff);
+  border: 1px solid var(--color-gray-200, #e5e7eb);
+  border-radius: var(--tabs-radius-lg);
+  box-shadow: var(--tabs-shadow-lg);
+  z-index: var(--size-z-dropdown, 9999);
 }
 
 .l-chrome-tabs__context-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
+  gap: var(--size-space-s, 10px);
+  padding: var(--size-space-xs, 8px) var(--size-space-m, 14px);
   cursor: pointer;
-  color: #333;
-  font-size: 13px;
-  transition: background 0.15s;
+  color: var(--color-gray-700, #374151);
+  font-size: var(--tabs-font-size);
+  border-radius: var(--tabs-radius);
+  transition: var(--tabs-transition);
 }
 
 .l-chrome-tabs__context-item:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--color-gray-50, rgba(0, 0, 0, 0.04));
+  color: var(--color-primary-500, #3b82f6);
 }
 
 .l-chrome-tabs__context-item--disabled {
@@ -575,7 +608,7 @@ onUnmounted(() => {
 }
 
 .l-chrome-tabs__context-icon {
-  color: #666;
+  color: var(--color-gray-400, #9ca3af);
   flex-shrink: 0;
 }
 
@@ -627,114 +660,107 @@ onUnmounted(() => {
 }
 
 /* ==================== 其他变体样式 ==================== */
+/* 卡片风格 */
 .l-chrome-tabs--card .l-chrome-tabs__item {
-  background: #e8eaed;
-  border-radius: 8px 8px 0 0;
-  margin: 0 2px;
+  background: var(--color-gray-100, #f3f4f6);
+  border-radius: var(--tabs-radius) var(--tabs-radius) 0 0;
+  margin: 0 var(--size-space-xxs, 2px);
   -webkit-mask-box-image: none;
 }
 
 .l-chrome-tabs--card .l-chrome-tabs__item:hover {
-  background: #f1f3f4;
+  background: var(--color-gray-50, #f9fafb);
 }
 
 .l-chrome-tabs--card .l-chrome-tabs__item--active {
-  background: #fff;
+  background: var(--color-bg-container, #ffffff);
 }
 
+/* 线条风格 */
 .l-chrome-tabs--line .l-chrome-tabs__item {
   border-bottom: 2px solid transparent;
   border-radius: 0;
   margin: 0;
-  padding: 0 16px;
+  padding: 0 var(--size-space-m, 16px);
   -webkit-mask-box-image: none;
   background: transparent;
 }
 
 .l-chrome-tabs--line .l-chrome-tabs__item:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--color-gray-50, rgba(0, 0, 0, 0.04));
 }
 
 .l-chrome-tabs--line .l-chrome-tabs__item--active {
-  border-bottom-color: #1a73e8;
-  color: #1a73e8;
+  border-bottom-color: var(--color-primary-500, #3b82f6);
+  color: var(--color-primary-500, #3b82f6);
   background: transparent;
 }
 
+/* 圆角药丸风格 */
 .l-chrome-tabs--rounded .l-chrome-tabs__item {
-  background: #e8eaed;
-  border-radius: 20px;
-  margin: 0 4px;
+  background: var(--color-gray-100, #f3f4f6);
+  border-radius: var(--size-radius-full, 20px);
+  margin: 0 var(--size-space-xxs, 4px);
   -webkit-mask-box-image: none;
 }
 
 .l-chrome-tabs--rounded .l-chrome-tabs__item:hover {
-  background: #d3d5d9;
+  background: var(--color-gray-200, #e5e7eb);
 }
 
 .l-chrome-tabs--rounded .l-chrome-tabs__item--active {
-  background: #fff;
+  background: var(--color-bg-container, #ffffff);
+  box-shadow: var(--tabs-shadow);
 }
 
 /* ==================== 暗色模式 ==================== */
+[data-theme-mode="dark"] .l-chrome-tabs,
+[data-theme="dark"] .l-chrome-tabs,
+.dark .l-chrome-tabs {
+  --tabs-bg: var(--color-gray-800, #1f2937);
+  --tabs-item-bg: transparent;
+  --tabs-item-bg-hover: var(--color-gray-700, #374151);
+  --tabs-item-bg-active: var(--color-gray-900, #111827);
+  --tabs-text-color: var(--color-gray-300, #d1d5db);
+  --tabs-text-color-active: var(--color-gray-50, #f9fafb);
+  --tabs-text-color-secondary: var(--color-gray-500, #6b7280);
+  --tabs-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme-mode="dark"] .l-chrome-tabs__context-menu,
+[data-theme="dark"] .l-chrome-tabs__context-menu,
+.dark .l-chrome-tabs__context-menu {
+  background: var(--color-gray-800, #1f2937);
+  border-color: var(--color-gray-700, #374151);
+}
+
+[data-theme-mode="dark"] .l-chrome-tabs__context-item,
+[data-theme="dark"] .l-chrome-tabs__context-item,
+.dark .l-chrome-tabs__context-item {
+  color: var(--color-gray-200, #e5e7eb);
+}
+
+[data-theme-mode="dark"] .l-chrome-tabs__context-item:hover,
+[data-theme="dark"] .l-chrome-tabs__context-item:hover,
+.dark .l-chrome-tabs__context-item:hover {
+  background: var(--color-gray-700, #374151);
+}
+
+[data-theme-mode="dark"] .l-chrome-tabs__close:hover,
+[data-theme="dark"] .l-chrome-tabs__close:hover,
+.dark .l-chrome-tabs__close:hover {
+  background: var(--color-danger-900, rgba(239, 68, 68, 0.2));
+  color: var(--color-danger-400, #f87171);
+}
+
+/* 系统深色模式偏好 */
 @media (prefers-color-scheme: dark) {
   .l-chrome-tabs {
-    background-color: #53565a;
-  }
-
-  .l-chrome-tabs--chrome .l-chrome-tabs__item {
-    color: #e8eaed;
-  }
-
-  .l-chrome-tabs--chrome .l-chrome-tabs__item:hover {
-    background: #6b6e72;
-  }
-
-  .l-chrome-tabs--chrome .l-chrome-tabs__item--active {
-    background: #3c4043;
-    color: #fff;
-  }
-
-  .l-chrome-tabs--chrome .l-chrome-tabs__item--active:hover {
-    background: #3c4043;
-  }
-
-  .l-chrome-tabs__scroll-btn,
-  .l-chrome-tabs__add,
-  .l-chrome-tabs__more-btn {
-    color: #e8eaed;
-  }
-
-  .l-chrome-tabs__scroll-btn:hover,
-  .l-chrome-tabs__add:hover,
-  .l-chrome-tabs__more-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-  }
-
-  .l-chrome-tabs__close {
-    color: #bdc1c6;
-  }
-
-  .l-chrome-tabs__close:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-  }
-
-  .l-chrome-tabs__context-menu {
-    background: #3c4043;
-    box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.3);
-  }
-
-  .l-chrome-tabs__context-item {
-    color: #e8eaed;
-  }
-
-  .l-chrome-tabs__context-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  .l-chrome-tabs__context-icon {
-    color: #bdc1c6;
+    --tabs-bg: var(--color-gray-800, #1f2937);
+    --tabs-item-bg-hover: var(--color-gray-700, #374151);
+    --tabs-item-bg-active: var(--color-gray-900, #111827);
+    --tabs-text-color: var(--color-gray-300, #d1d5db);
+    --tabs-text-color-active: var(--color-gray-50, #f9fafb);
   }
 }
 </style>
