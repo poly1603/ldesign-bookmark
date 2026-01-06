@@ -1,6 +1,18 @@
-# 📚 书签管理组件库
+<div align="center">
 
-一个高性能、易用的书签管理组件库，支持 Vue 3，提供完整的书签增删改查、拖拽排序、虚拟滚动等功能。
+# 📚 @ldesign/bookmark
+
+一个高性能、易用的书签管理组件库，支持 Vue 3
+
+[![npm version](https://img.shields.io/npm/v/@ldesign/bookmark-vue.svg?style=flat-square)](https://www.npmjs.com/package/@ldesign/bookmark-vue)
+[![npm downloads](https://img.shields.io/npm/dm/@ldesign/bookmark-vue.svg?style=flat-square)](https://www.npmjs.com/package/@ldesign/bookmark-vue)
+[![license](https://img.shields.io/github/license/user/repo.svg?style=flat-square)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
+[![Vue 3](https://img.shields.io/badge/Vue-3.3+-green.svg?style=flat-square)](https://vuejs.org/)
+
+</div>
+
+---
 
 ## ✨ 特性
 
@@ -155,15 +167,20 @@ import { LazyBookmarkBar } from '@ldesign/bookmark-vue'
 
 ### VirtualList 组件
 
+高性能虚拟滚动列表，支持固定高度和动态高度。
+
 #### Props
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `items` | `T[]` | `[]` | 数据列表 |
-| `itemHeight` | `number` | - | 每项高度（必填） |
+| `itemHeight` | `number` | `40` | 每项高度 |
 | `height` | `number \| string` | `'100%'` | 容器高度 |
 | `buffer` | `number` | `5` | 缓冲区大小 |
 | `keyField` | `keyof T` | `'id'` | 唯一键名 |
+| `dynamicHeight` | `boolean` | `false` | 是否启用动态高度 |
+| `estimatedHeight` | `number` | `40` | 估算高度（动态高度模式） |
+| `useRAF` | `boolean` | `true` | 是否启用 RAF 优化 |
 
 #### Methods
 
@@ -172,6 +189,32 @@ import { LazyBookmarkBar } from '@ldesign/bookmark-vue'
 | `scrollToIndex` | `(index: number, behavior?: ScrollBehavior)` | 滚动到指定索引 |
 | `scrollToTop` | `(behavior?: ScrollBehavior)` | 滚动到顶部 |
 | `scrollToBottom` | `(behavior?: ScrollBehavior)` | 滚动到底部 |
+| `resetHeightCache` | `()` | 重置高度缓存（动态高度模式） |
+| `getVisibleRange` | `()` | 获取当前可见范围 |
+
+### BookmarkSearch 组件
+
+书签搜索组件，支持模糊搜索、实时过滤和键盘导航。
+
+#### Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `items` | `BookmarkItem[]` | `[]` | 书签列表 |
+| `placeholder` | `string` | `'搜索书签...'` | 占位符文本 |
+| `autofocus` | `boolean` | `false` | 是否自动聚焦 |
+| `maxResults` | `number` | `20` | 最大结果数 |
+| `debounce` | `number` | `150` | 搜索防抖延迟（ms） |
+| `showPath` | `boolean` | `true` | 是否显示路径 |
+| `showShortcut` | `boolean` | `true` | 是否显示快捷键提示 |
+
+#### Events
+
+| 事件 | 参数 | 说明 |
+|------|------|------|
+| `select` | `(item: BookmarkItem, event: Event)` | 选中搜索结果 |
+| `update:query` | `(query: string)` | 搜索内容变化 |
+| `close` | `()` | 关闭搜索 |
 
 ## 🔧 核心 API
 
@@ -249,6 +292,96 @@ emitter.on('update', handleUpdate, { priority: 10 })
 
 // 只触发一次
 emitter.once('init', handleInit)
+
+// 命名空间
+emitter.on('event', handler, { namespace: 'myModule' })
+emitter.offByNamespace('myModule') // 移除该命名空间下的所有监听器
+
+// 异步事件
+await emitter.emitAsync('asyncEvent', data)
+
+// 等待事件
+const data = await emitter.waitFor('dataReady', { timeout: 5000 })
+```
+
+### BookmarkIndex
+
+高性能书签索引，支持模糊搜索、标签索引和子树查询。
+
+```typescript
+import { BookmarkIndex } from '@ldesign/bookmark-core'
+
+const index = new BookmarkIndex()
+index.build(bookmarks)
+
+// 快速查找 - O(1)
+const item = index.get('bookmark-id')
+
+// 模糊搜索
+const results = index.search('github', {
+  fuzzy: true,
+  limit: 10,
+  searchIn: ['title', 'url', 'tags'],
+})
+
+// 按标签查找
+const tagged = index.findByTag('dev')
+const multiTagged = index.findByTags(['vue', 'typescript'])
+
+// 获取所有标签
+const allTags = index.getAllTags() // [{ tag: 'dev', count: 10 }, ...]
+
+// 子树查询
+const children = index.getChildren('folder-id')
+const descendants = index.getDescendants('folder-id')
+const stats = index.getSubtreeStats('folder-id')
+
+// 其他查询
+const recent = index.getRecent(10)
+const mostVisited = index.getMostVisited(10)
+const allFolders = index.getAllFolders()
+```
+
+### 工具函数
+
+```typescript
+import {
+  cloneBookmark,
+  mergeBookmarks,
+  validateBookmark,
+  sortBookmarks,
+  countBookmarks,
+  filterBookmarks,
+} from '@ldesign/bookmark-core'
+
+// 深拷贝书签
+const copy = cloneBookmark(bookmark, true) // true 表示生成新 ID
+
+// 合并书签列表
+const merged = mergeBookmarks(target, source, {
+  overwrite: false,
+  deepMerge: true,
+})
+
+// 校验书签数据
+const { valid, errors } = validateBookmark(item, true) // true 为严格模式
+
+// 排序书签
+const sorted = sortBookmarks(bookmarks, {
+  field: 'title',
+  direction: 'asc',
+  foldersFirst: true,
+  pinnedFirst: true,
+}, true) // true 表示递归排序子文件夹
+
+// 统计书签
+const stats = countBookmarks(bookmarks)
+// { total: 100, bookmarks: 80, folders: 15, separators: 5, maxDepth: 3 }
+
+// 过滤书签
+const filtered = filterBookmarks(bookmarks, item => {
+  return 'url' in item && item.url?.includes('github')
+})
 ```
 
 ## 📊 性能指标
@@ -317,27 +450,29 @@ MIT License
 - [x] 事件优化
 - [x] 组件懒加载
 
-### Phase 2: 交互体验升级（进行中）
-- [ ] 拖拽排序功能
-- [ ] 快捷键系统
-- [ ] 搜索和过滤
-- [ ] 动画优化
-- [ ] 无障碍支持
+### Phase 2: 交互体验升级 ✅
+- [x] 键盘导航系统
+- [x] 搜索和过滤组件
+- [x] 动画优化
+- [x] 无障碍支持（ARIA）
+- [x] 溢出菜单
 
-### Phase 3: 视觉样式改造（计划中）
-- [ ] UI 重设计
-- [ ] 主题系统
-- [ ] 响应式布局
-- [ ] 图标优化
+### Phase 3: 视觉样式改造 ✅
+- [x] CSS 变量主题系统
+- [x] 暗色主题支持
+- [x] 响应式布局
+- [x] Favicon 自动获取
+- [x] 滚动条样式优化
 
 ### Phase 4: 代码质量提升（持续）
+- [x] TypeScript 类型完善
+- [x] JSDoc 注释完善
 - [ ] 单元测试
 - [ ] 集成测试
-- [ ] 文档完善
 - [ ] 性能监控
 
 ---
 
-**当前版本**: v1.0.0  
-**更新时间**: 2025-12-03  
-**状态**: Phase 1 已完成 ✅
+**当前版本**: v1.1.0  
+**更新时间**: 2026-01-05  
+**状态**: Phase 1-3 已完成 ✅

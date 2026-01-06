@@ -1,30 +1,62 @@
 /**
  * 事件发射器
- * 支持防抖、节流和优先级队列
  * @module utils/event-emitter
+ * @description 提供类型安全的事件订阅和发布功能，支持防抖、节流、优先级和异步事件
  */
+
+// ==================== 类型定义 ====================
 
 /**
  * 事件处理函数类型
+ * @template T - 事件数据类型
  */
 export type EventHandler<T = unknown> = (data: T) => void
 
 /**
+ * 异步事件处理函数类型
+ * @template T - 事件数据类型
+ */
+export type AsyncEventHandler<T = unknown> = (data: T) => void | Promise<void>
+
+/**
  * 事件处理器配置
+ * @interface
  */
 export interface EventHandlerOptions {
-  /** 是否只触发一次 */
+  /**
+   * 是否只触发一次
+   * @default false
+   */
   once?: boolean
-  /** 防抖延迟（毫秒） */
+
+  /**
+   * 防抖延迟（毫秒）
+   * @description 在指定时间内多次触发只执行最后一次
+   */
   debounce?: number
-  /** 节流延迟（毫秒） */
+
+  /**
+   * 节流延迟（毫秒）
+   * @description 在指定时间内最多触发一次
+   */
   throttle?: number
-  /** 优先级（数字越大优先级越高） */
+
+  /**
+   * 优先级（数字越大优先级越高）
+   * @default 0
+   */
   priority?: number
+
+  /**
+   * 命名空间
+   * @description 用于分组管理事件
+   */
+  namespace?: string
 }
 
 /**
  * 内部事件处理器包装
+ * @internal
  */
 interface EventHandlerWrapper<T> {
   handler: EventHandler<T>
@@ -256,6 +288,175 @@ export class EventEmitter<EventMap extends { [K in keyof EventMap]: unknown }> {
    */
   eventNames(): Array<keyof EventMap> {
     return Array.from(this.handlers.keys())
+  }
+
+  /**
+   * 异步发布事件
+   * @description 等待所有处理器执行完成（包括异步处理器）
+   * @param event - 事件名称
+   * @param data - 事件数据
+   * @returns Promise，所有处理器执行完成后 resolve
+   */
+  async emitAsync<K extends keyof EventMap>(event: K, data: EventMap[K]): Promise<void> {
+    const handlers = this.handlers.get(event)
+    if (!handlers || handlers.size === 0) {
+      return
+    }
+
+    // 按优先级排序
+    const sortedHandlers = Array.from(handlers).sort((a, b) => {
+      const priorityA = a.options.priority ?? 0
+      const priorityB = b.options.priority ?? 0
+      return priorityB - priorityA
+    })
+
+    const promises: Promise<void>[] = []
+
+    for (const wrapper of sortedHandlers) {
+      const promise = this.executeHandlerAsync(wrapper, data, event, handlers)
+      if (promise) {
+        promises.push(promise)
+      }
+    }
+
+    await Promise.all(promises)
+  }
+
+  /**
+   * 异步执行处理器
+   */
+  private executeHandlerAsync<K extends keyof EventMap>(
+    wrapper: EventHandlerWrapper<unknown>,
+    data: EventMap[K],
+    event: K,
+    handlers: Set<EventHandlerWrapper<unknown>>,
+  ): Promise<void> | undefined {
+    const { handler, options } = wrapper
+
+    // 防抖和节流不支持异步
+    if (options.debounce || options.throttle) {
+      this.executeHandler(wrapper, data, event, handlers)
+      return undefined
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        const result = handler(data)
+
+        if (result instanceof Promise) {
+          result.then(() => {
+            this.handleOnceCleanup(wrapper, options, handlers, event)
+            resolve()
+          }).catch(reject)
+        }
+        else {
+          this.handleOnceCleanup(wrapper, options, handlers, event)
+          resolve()
+        }
+      }
+      catch (error) {
+        console.error(`[BookmarkEventEmitter] Error in async handler for "${String(event)}":`, error)
+        reject(error)
+      }
+    })
+  }
+
+  /**
+   * 处理 once 清理
+   */
+  private handleOnceCleanup<K extends keyof EventMap>(
+    wrapper: EventHandlerWrapper<unknown>,
+    options: EventHandlerOptions,
+    handlers: Set<EventHandlerWrapper<unknown>>,
+    event: K,
+  ): void {
+    if (options.once) {
+      if (wrapper.timer) {
+        clearTimeout(wrapper.timer)
+      }
+      handlers.delete(wrapper)
+      if (handlers.size === 0) {
+        this.handlers.delete(event)
+      }
+    }
+  }
+
+  /**
+   * 等待事件触发
+   * @description 返回一个 Promise，当指定事件触发时 resolve
+   * @param event - 要等待的事件名称
+   * @param timeout - 超时时间（毫秒），默认 0 表示不超时
+   * @returns Promise，触发时 resolve 事件数据
+   * @throws 超时时 reject
+   * @example
+   * ```ts
+   * // 等待事件触发
+   * const data = await emitter.waitFor('loaded')
+   *
+   * // 超时 5 秒
+   * const data = await emitter.waitFor('loaded', 5000)
+   * ```
+   */
+  waitFor<K extends keyof EventMap>(
+    event: K,
+    timeout = 0,
+  ): Promise<EventMap[K]> {
+    return new Promise((resolve, reject) => {
+      let timeoutId: NodeJS.Timeout | undefined
+
+      const unsubscribe = this.once(event, (data) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
+        resolve(data)
+      })
+
+      if (timeout > 0) {
+        timeoutId = setTimeout(() => {
+          unsubscribe()
+          reject(new Error(`[EventEmitter] waitFor "${String(event)}" timed out after ${timeout}ms`))
+        }, timeout)
+      }
+    })
+  }
+
+  /**
+   * 删除指定命名空间的所有事件
+   * @param namespace - 命名空间
+   */
+  offByNamespace(namespace: string): void {
+    this.handlers.forEach((handlers, event) => {
+      handlers.forEach((wrapper) => {
+        if (wrapper.options.namespace === namespace) {
+          if (wrapper.timer) {
+            clearTimeout(wrapper.timer)
+          }
+          handlers.delete(wrapper)
+        }
+      })
+      if (handlers.size === 0) {
+        this.handlers.delete(event)
+      }
+    })
+  }
+
+  /**
+   * 获取指定事件的所有命名空间
+   * @param event - 事件名称
+   * @returns 命名空间数组
+   */
+  getNamespaces(event: keyof EventMap): string[] {
+    const handlers = this.handlers.get(event)
+    if (!handlers) return []
+
+    const namespaces = new Set<string>()
+    handlers.forEach((wrapper) => {
+      if (wrapper.options.namespace) {
+        namespaces.add(wrapper.options.namespace)
+      }
+    })
+
+    return Array.from(namespaces)
   }
 }
 

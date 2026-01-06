@@ -42,6 +42,14 @@ import {
 } from 'lucide-vue-next'
 import type { ChromeTabContextAction, ChromeTabItem, ChromeTabVariant } from '../types'
 
+// 拖拽状态
+interface DragState {
+  dragging: boolean
+  dragIndex: number
+  dropIndex: number
+  dragItem: ChromeTabItem | null
+}
+
 interface Props {
   /** 标签列表 */
   tabs?: ChromeTabItem[]
@@ -61,6 +69,8 @@ interface Props {
   showIcon?: boolean
   /** 自定义类名 */
   class?: string
+  /** 是否启用拖拽排序 @default true */
+  draggable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -71,29 +81,22 @@ const props = withDefaults(defineProps<Props>(), {
   variant: 'chrome',
   maxTabs: 20,
   showIcon: true,
+  draggable: true,
 })
 
 const emit = defineEmits<{
-  /** 标签切换 */
-  change: [key: string]
-  /** 关闭标签 */
-  close: [key: string]
-  /** 添加标签 */
-  add: []
-  /** 右键菜单动作 */
-  contextAction: [action: ChromeTabContextAction, tab: ChromeTabItem, index: number]
-  /** 锁定/解锁标签 */
-  togglePin: [key: string]
-  /** 刷新标签 */
-  refresh: [key: string]
-  /** 关闭左侧 */
-  closeLeft: [key: string]
-  /** 关闭右侧 */
-  closeRight: [key: string]
-  /** 关闭其他 */
-  closeOthers: [key: string]
-  /** 关闭全部 */
-  closeAll: []
+  (e: 'change', key: string): void
+  (e: 'close', key: string): void
+  (e: 'add'): void
+  (e: 'contextAction', action: ChromeTabContextAction, tab: ChromeTabItem, index: number): void
+  (e: 'togglePin', key: string): void
+  (e: 'refresh', key: string): void
+  (e: 'closeLeft', key: string): void
+  (e: 'closeRight', key: string): void
+  (e: 'closeOthers', key: string): void
+  (e: 'closeAll'): void
+  (e: 'sort', fromIndex: number, toIndex: number, newTabs: ChromeTabItem[]): void
+  (e: 'update:tabs', tabs: ChromeTabItem[]): void
 }>()
 
 /** 滚动容器引用 */
@@ -111,6 +114,14 @@ const contextMenu = ref({
   y: 0,
   tab: null as ChromeTabItem | null,
   index: -1,
+})
+
+/** 拖拽状态 */
+const dragState = ref<DragState>({
+  dragging: false,
+  dragIndex: -1,
+  dropIndex: -1,
+  dragItem: null,
 })
 
 /** 滚动步长 */
@@ -256,6 +267,108 @@ function handleClickOutside(event: MouseEvent): void {
   }
 }
 
+// ==================== 拖拽排序 ====================
+
+/** 根据 displayTabs 索引找到 props.tabs 中的真实索引 */
+function getRealIndex(displayIndex: number): number {
+  const tab = displayTabs.value[displayIndex]
+  if (!tab) return -1
+  return props.tabs.findIndex(t => t.key === tab.key)
+}
+
+/** 开始拖拽 */
+function handleDragStart(event: DragEvent, tab: ChromeTabItem, index: number): void {
+  // 只有非固定、非首页的标签可以拖拽
+  if (!props.draggable || tab.pinned || tab.isHome) {
+    event.preventDefault()
+    return
+  }
+  
+  dragState.value = {
+    dragging: true,
+    dragIndex: index,
+    dropIndex: index,
+    dragItem: tab,
+  }
+  
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', tab.key)
+  }
+}
+
+/** 拖拽过程中 */
+function handleDragOver(event: DragEvent, index: number): void {
+  if (!dragState.value.dragging) return
+  event.preventDefault()
+  
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+  
+  // 更新目标位置
+  if (dragState.value.dropIndex !== index) {
+    dragState.value.dropIndex = index
+  }
+}
+
+/** 进入拖拽目标 */
+function handleDragEnter(event: DragEvent, index: number): void {
+  if (!dragState.value.dragging) return
+  event.preventDefault()
+  dragState.value.dropIndex = index
+}
+
+/** 离开拖拽目标 */
+function handleDragLeave(): void {
+  // 保持 dropIndex 不变，等待 drop 或 dragend
+}
+
+/** 放置 */
+function handleDrop(event: DragEvent, index: number): void {
+  event.preventDefault()
+  
+  const { dragIndex, dragItem } = dragState.value
+  
+  if (dragIndex !== -1 && dragIndex !== index && dragItem) {
+    // 找到在 props.tabs 中的真实索引
+    const realFromIndex = getRealIndex(dragIndex)
+    const realToIndex = getRealIndex(index)
+    
+    if (realFromIndex !== -1 && realToIndex !== -1 && realFromIndex !== realToIndex) {
+      // 创建新的标签数组
+      const newTabs = [...props.tabs]
+      const [movedTab] = newTabs.splice(realFromIndex, 1)
+      // 如果拖拽到后面，需要调整目标索引
+      const adjustedToIndex = realFromIndex < realToIndex ? realToIndex : realToIndex
+      newTabs.splice(adjustedToIndex, 0, movedTab)
+      
+      // 发出排序事件（包含新数组）
+      emit('sort', realFromIndex, adjustedToIndex, newTabs)
+      // 支持 v-model:tabs
+      emit('update:tabs', newTabs)
+    }
+  }
+  
+  // 重置拖拽状态
+  resetDragState()
+}
+
+/** 结束拖拽 */
+function handleDragEnd(): void {
+  resetDragState()
+}
+
+/** 重置拖拽状态 */
+function resetDragState(): void {
+  dragState.value = {
+    dragging: false,
+    dragIndex: -1,
+    dropIndex: -1,
+    dragItem: null,
+  }
+}
+
 watch(() => props.activeKey, () => { nextTick(() => { scrollToActiveTab() }) })
 watch(() => props.tabs.length, () => { nextTick(() => { updateScrollArrows() }) })
 
@@ -286,8 +399,25 @@ onUnmounted(() => {
       <TransitionGroup name="tab" tag="div" class="l-chrome-tabs__list">
         <div v-for="(tab, index) in displayTabs" :key="tab.key"
           :ref="el => { if (isActive(tab.key)) activeTabRef = el as HTMLElement }"
-          :class="['l-chrome-tabs__item', { 'l-chrome-tabs__item--active': isActive(tab.key), 'l-chrome-tabs__item--pinned': tab.pinned, 'l-chrome-tabs__item--home': tab.isHome }]"
-          @click="handleTabClick(tab)" @contextmenu="showContextMenu($event, tab, index)">
+          :class="[
+            'l-chrome-tabs__item',
+            {
+              'l-chrome-tabs__item--active': isActive(tab.key),
+              'l-chrome-tabs__item--pinned': tab.pinned,
+              'l-chrome-tabs__item--home': tab.isHome,
+              'l-chrome-tabs__item--dragging': dragState.dragging && dragState.dragIndex === index,
+              'l-chrome-tabs__item--drop-target': dragState.dragging && dragState.dropIndex === index && dragState.dragIndex !== index,
+            }
+          ]"
+          :draggable="props.draggable && !tab.pinned && !tab.isHome"
+          @click="handleTabClick(tab)"
+          @contextmenu="showContextMenu($event, tab, index)"
+          @dragstart="handleDragStart($event, tab, index)"
+          @dragover="handleDragOver($event, index)"
+          @dragenter="handleDragEnter($event, index)"
+          @dragleave="handleDragLeave"
+          @drop="handleDrop($event, index)"
+          @dragend="handleDragEnd">
           <div class="l-chrome-tabs__item-wrap">
             <span v-if="(showIcon && tab.icon) || tab.isHome" class="l-chrome-tabs__icon">
               <slot name="icon" :tab="tab">
@@ -457,16 +587,25 @@ onUnmounted(() => {
   box-sizing: border-box;
   flex-shrink: 0;
   font-weight: 400;
-  /* Chrome 风格圆角遮罩 */
+  /* Chrome 风格圆角遮罩 - 两侧都有凹陷 */
   -webkit-mask-box-image: url("data:image/svg+xml,%3Csvg width='67' height='33' viewBox='0 0 67 33' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M27 0c-6.627 0-12 5.373-12 12v6c0 8.284-6.716 15-15 15h67c-8.284 0-15-6.716-15-15v-6c0-6.627-5.373-12-12-12H27z' fill='%23000'/%3E%3C/svg%3E") 12 27 15;
 }
 
+/* 第一个标签 - 左下角普通圆角，右下角凹陷 */
 .l-chrome-tabs__item:first-child {
   margin-left: 0;
+  -webkit-mask-box-image: url("data:image/svg+xml,%3Csvg width='67' height='33' viewBox='0 0 67 33' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M12 0C5.373 0 0 5.373 0 12v9c0 6.627 5.373 12 12 12h55c-8.284 0-15-6.716-15-15v-6c0-6.627-5.373-12-12-12H12z' fill='%23000'/%3E%3C/svg%3E") 12 27 15;
 }
 
+/* 最后一个标签 - 左下角凹陷，右下角普通圆角 */
 .l-chrome-tabs__item:last-child {
   margin-right: 0;
+  -webkit-mask-box-image: url("data:image/svg+xml,%3Csvg width='67' height='33' viewBox='0 0 67 33' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M27 0c-6.627 0-12 5.373-12 12v6c0 8.284-6.716 15-15 15h43c6.627 0 12-5.373 12-12v-9c0-6.627-5.373-12-12-12H27z' fill='%23000'/%3E%3C/svg%3E") 12 27 15;
+}
+
+/* 唯一标签 - 两边都是普通圆角 */
+.l-chrome-tabs__item:first-child:last-child {
+  -webkit-mask-box-image: url("data:image/svg+xml,%3Csvg width='67' height='33' viewBox='0 0 67 33' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='67' height='33' rx='12' fill='%23000'/%3E%3C/svg%3E") 12 12 12;
 }
 
 /* Chrome 变体样式 */
@@ -487,6 +626,26 @@ onUnmounted(() => {
 
 .l-chrome-tabs--chrome .l-chrome-tabs__item--active:hover {
   background: var(--tabs-item-bg-active);
+}
+
+/* 拖拽状态 - 被拖拽的标签 */
+.l-chrome-tabs__item--dragging {
+  opacity: 0.3;
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+/* 拖拽放置指示器 - 使用 box-shadow 和 outline 避免被 mask 裁剪 */
+.l-chrome-tabs__item--drop-target {
+  position: relative;
+  /* 使用内部阴影作为指示器 */
+  box-shadow: inset 4px 0 0 0 var(--color-primary-500, #3b82f6);
+}
+
+/* 指示器高亮背景 */
+.l-chrome-tabs__item--drop-target .l-chrome-tabs__item-wrap {
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 4px;
 }
 
 /* ==================== 标签内容 ==================== */
@@ -623,26 +782,29 @@ onUnmounted(() => {
   opacity: 0;
 }
 
+/* 新增动画 - 更自然的缩放效果 */
 .tab-enter-active {
-  transition: all 0.25s ease-out;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .tab-leave-active {
-  transition: all 0.2s ease-in;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.6, 1);
+  position: absolute;
 }
 
 .tab-enter-from {
   opacity: 0;
-  transform: translateX(-20px);
+  transform: scale(0.8) translateY(-10px);
 }
 
 .tab-leave-to {
   opacity: 0;
-  transform: translateX(20px) scale(0.9);
+  transform: scale(0.8) translateY(10px);
 }
 
+/* 移动动画 - 排序时的平滑过渡 */
 .tab-move {
-  transition: transform 0.25s ease;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .context-menu-enter-active {
@@ -753,9 +915,11 @@ onUnmounted(() => {
   color: var(--color-danger-400, #f87171);
 }
 
-/* 系统深色模式偏好 */
+/* 系统深色模式偏好 - 仅在 html/body 有 auto-dark 类时启用 */
 @media (prefers-color-scheme: dark) {
-  .l-chrome-tabs {
+  .auto-dark .l-chrome-tabs,
+  html.auto-dark .l-chrome-tabs,
+  body.auto-dark .l-chrome-tabs {
     --tabs-bg: var(--color-gray-800, #1f2937);
     --tabs-item-bg-hover: var(--color-gray-700, #374151);
     --tabs-item-bg-active: var(--color-gray-900, #111827);

@@ -3,9 +3,19 @@
  * @module utils
  */
 
-export { EventEmitter, type EventHandler } from './event-emitter'
-export { BookmarkIndex } from './bookmark-index'
+export {
+  EventEmitter,
+  type EventHandler,
+  type AsyncEventHandler,
+  type EventHandlerOptions,
+} from './event-emitter'
+export {
+  BookmarkIndex,
+  type SearchOptions,
+  type SearchResult,
+} from './bookmark-index'
 
+// 基础工具函数
 export {
   findItemById,
   flattenItems,
@@ -18,5 +28,15 @@ export {
   isHidden,
   isPinned,
   isSeparator,
+} from './bookmark-utils'
+
+// 新增工具函数
+export {
+  cloneBookmark,
+  mergeBookmarks,
+  validateBookmark,
+  sortBookmarks,
+  countBookmarks,
+  filterBookmarks,
 } from './bookmark-utils'
 

@@ -1,22 +1,38 @@
 /**
  * 书签类型定义汇总
  * @module types
+ * @description 导出所有书签系统的 TypeScript 类型定义
  */
 
-// 书签项类型
+// ==================== 辅助类型 ====================
+export type {
+  BookmarkCreateInput,
+  BookmarkSortField,
+  BookmarkSortOptions,
+  BookmarkUpdateInput,
+  DeepPartial,
+  DeepReadonly,
+  OmitStrict,
+  OptionalKeys,
+  RequiredKeys,
+  SortDirection,
+} from './bookmark-item'
+
+// ==================== 书签项类型 ====================
 export type {
   BookmarkFolderItem,
   BookmarkItem,
   BookmarkItemBase,
   BookmarkItemPath,
   BookmarkItemType,
+  BookmarkItemWithId,
   BookmarkLeafItem,
   BookmarkSeparatorItem,
   BookmarkTarget,
   FlatBookmarkItem,
 } from './bookmark-item'
 
-// 书签配置类型
+// ==================== 书签配置类型 ====================
 export type {
   BookmarkConfig,
   BookmarkMode,
@@ -25,7 +41,7 @@ export type {
 
 export { DEFAULT_BOOKMARK_CONFIG } from './bookmark-config'
 
-// 书签状态类型
+// ==================== 书签状态类型 ====================
 export type {
   BookmarkAddEventParams,
   BookmarkEventHandler,
