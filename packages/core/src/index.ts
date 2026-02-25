@@ -13,3 +13,5 @@ export * from './types'
 // 工具函数导出
 export * from './utils'
 
+// Engine 插件
+export * from './engine'
